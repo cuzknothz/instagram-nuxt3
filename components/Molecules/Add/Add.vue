@@ -1,14 +1,16 @@
 <script lang="ts" setup>
-import BackDrop from '@@/components/Utils/BackDrop.vue'
-import { useClickOutSide, useLockScroll } from '@@/composables'
-import { SectionEnum } from '@@/constants'
-import { useGlobalStore, usePostStore } from '@@/store'
+import BackDrop from '@/components/Utils/BackDrop.vue'
+import { useLockScroll } from '@/composables'
+import { SectionEnum } from '@/constants'
+import { useAddStore, useGlobalStore, usePostStore } from '@/store'
+import { onClickOutside } from '@vueuse/core'
 
 const postStore = usePostStore()
+const addStore = useAddStore()
 const globalStore = useGlobalStore()
 const inputFileRef = $ref<HTMLInputElement | null>(null)
-const containerPreviewRef = $ref<HTMLDivElement | null>(null)
-const boxRef = ref<HTMLDivElement | null>(null)
+const containerPreviewRef = $ref<HTMLDivElement>()
+const boxRef = ref<HTMLDivElement>()
 let startPointX = $ref(0)
 
 const postFiles = $computed<FileList[]>(() => postStore.files)
@@ -49,13 +51,11 @@ onBeforeUnmount(() => {
   postStore.clearFiles()
 })
 
-useClickOutSide(boxRef, () => {
+onClickOutside(boxRef, () => {
   globalStore.setSection(SectionEnum.HOME)
 })
 
-const closePostBox = () => {
-  globalStore.setSection(SectionEnum.HOME)
-}
+const closePostBox = () => addStore.toggle(false)
 
 const handleUpload = () => {
   if (inputFileRef) {
@@ -81,7 +81,10 @@ const handleSlide = (indicator: 1 | -1) => {
         >
           <div :class="['relative w-[300px] bg-white text-[0.9rem]', { 'w-[500px]': isHasFile }]">
             <div class="absolute right-[12px] top-[12px]">
-              <div class="relative h-[18px] w-[18px] cursor-pointer rounded-full bg-gray-600" @click="closePostBox">
+              <div
+                class="relative h-[18px] w-[18px] cursor-pointer rounded-full bg-gray-600"
+                @click="closePostBox"
+              >
                 <div
                   class="absolute top-1/2 left-1/2 h-[8px] w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-white"
                 />
@@ -90,7 +93,9 @@ const handleSlide = (indicator: 1 | -1) => {
                 />
               </div>
             </div>
-            <div class="flex h-[42px] w-full items-center justify-center border-b-[1px] border-gray-300">
+            <div
+              class="flex h-[42px] w-full items-center justify-center border-b-[1px] border-gray-300"
+            >
               Create new post
             </div>
             <!-- <textarea v-show="isHasFile" class="w-full" />
@@ -108,7 +113,9 @@ const handleSlide = (indicator: 1 | -1) => {
               >
                 next
               </div>
-              <div class="absolute bottom-[15px] left-1/2 z-10 flex -translate-x-1/2 justify-between space-x-[4px]">
+              <div
+                class="absolute bottom-[15px] left-1/2 z-10 flex -translate-x-1/2 justify-between space-x-[4px]"
+              >
                 <div
                   v-for="(i, idx) in postFiles"
                   :key="idx"
